@@ -2,6 +2,7 @@ package com.hk.board.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.hk.board.dao.AnsDao;
 import com.hk.board.dto.AnsDto;
+import com.hk.board.util.Paging;
 
 //servlet으로 만들기: HttpServlet을 상속받아야 함
 @WebServlet("*.board")
@@ -31,12 +33,29 @@ public class AnsController extends HttpServlet{
 		AnsDao dao=new AnsDao();
 		
 		if(command.equals("/boardlist.board")) {
-			List<AnsDto> list=dao.getAllList();
+			//페이지 번호 받기
+			String pnum=request.getParameter("pnum");
+			
+			List<AnsDto> list=dao.getAllList(pnum);
 			request.setAttribute("list", list);
+			
+			//페이지 개수 구해서 boardlist.jsp로 보내기 위해 스코프에 담기
+			int pcount=dao.getPCount();
+			request.setAttribute("pcount", pcount);
+			
+			//페이지에 페이징 처리 기능 추가
+			//필요한 값: pcount(총 페이지 개수), pnum(요청 페이지 번호), 페이지 범위(페이지 수)
+			Map<String, Integer> map=Paging.pagingValue(pcount, pnum, 3);
+			request.setAttribute("pMap", map);
+			
 			dispatch("boardlist.jsp", request, response);
-		}else if(command.equals("/insertboardform.board")) {
+		}
+		
+		else if(command.equals("/insertboardform.board")) {
 			response.sendRedirect("insertboardform.jsp");
-		}else if(command.equals("/insertboard.board")) {
+		}
+		
+		else if(command.equals("/insertboard.board")) {
 			String id=request.getParameter("id");
 			String title=request.getParameter("title");
 			String content=request.getParameter("content");
@@ -47,9 +66,13 @@ public class AnsController extends HttpServlet{
 			}else {
 				response.sendRedirect("error.jsp");
 			}
-		}else if(command.equals("/boarddetail.board")){	
+		}
+		
+		else if(command.equals("/boarddetail.board")){	
 			String sseq=request.getParameter("seq");
 			int seq=Integer.parseInt(sseq);
+			
+			String pnum=request.getParameter("pnum");
 			
 			AnsDto dto=dao.getBoard(seq);//상세내용 조회
 			
@@ -57,23 +80,28 @@ public class AnsController extends HttpServlet{
 			//글목록 페이지에서 요청한 경우
 			if(review!=null&&review.equals("y")) {
 				dao.readCount(seq);//조회수 증가(글목록에서 요청했다면)
-				response.sendRedirect("boarddetail.board?seq="+seq);
+				response.sendRedirect("boarddetail.board?seq="+seq+"&pnum="+pnum);
 			}else {
 				request.setAttribute("dto", dto);//dto(상세내용)
+				request.setAttribute("pnum", pnum);
 				dispatch("boarddetail.jsp", request, response);
 			}
 			
 			//sessionScope를 이용해서 처리하는 방법
 			
 			//cookie를 이용해서 처리하는 방법
-		}else if(command.equals("/boardupdateform.board")) {
+		}
+		
+		else if(command.equals("/boardupdateform.board")) {
 			String sseq=request.getParameter("seq");
 			int seq=Integer.parseInt(sseq);
 			AnsDto dto=dao.getBoard(seq);
 			
 			request.setAttribute("dto", dto);
 			dispatch("boardupdateform.jsp", request, response);
-		}else if(command.equals("/boardupdate.board")) {//수정완료 요청
+		}
+		
+		else if(command.equals("/boardupdate.board")) {//수정완료 요청
 			String sseq=request.getParameter("seq");
 			int seq=Integer.parseInt(sseq);
 			String title=request.getParameter("title");
@@ -86,7 +114,9 @@ public class AnsController extends HttpServlet{
 			}else {
 				response.sendRedirect("error.jsp");
 			}
-		}else if(command.equals("/boarddelete.board")) {
+		}
+		
+		else if(command.equals("/boarddelete.board")) {
 			String sseq=request.getParameter("seq");
 			int seq=Integer.parseInt(sseq);
 			
@@ -97,7 +127,9 @@ public class AnsController extends HttpServlet{
 			}else {
 				response.sendRedirect("error.jsp");
 			}
-		}else if(command.equals("/muldel.board")) {
+		}
+		
+		else if(command.equals("/muldel.board")) {
 			String[]seqs=request.getParameterValues("seq");
 			
 			boolean isS=dao.mulDel(seqs);
@@ -108,6 +140,23 @@ public class AnsController extends HttpServlet{
 				response.sendRedirect("error.jsp");
 			}
 		}
+		
+		else if(command.equals("/replyboard.board")) {
+			String sseq=request.getParameter("seq");
+			int seq=Integer.parseInt(sseq);
+			String id=request.getParameter("id");
+			String title=request.getParameter("title");
+			String content=request.getParameter("content");
+			
+			boolean isS = dao.replyBoard(new AnsDto(seq,id,title,content));
+			
+			if(isS) {
+				response.sendRedirect("boardlist.board");
+			}else {
+				response.sendRedirect("error.jsp");
+			}
+		}
+		
 	}
 	
 	@Override

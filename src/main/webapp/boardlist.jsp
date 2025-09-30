@@ -47,6 +47,8 @@
 </script>
 </head>
 <body>
+<div id="container">
+<jsp:useBean id="util" class="com.hk.board.util.Util" />
 <h1>게시판</h1>
 <h2>글목록</h2>
 <form action="muldel.board" method="post" onsubmit="return isAllCheck()">
@@ -83,7 +85,16 @@
 								---삭제된 글입니다.---
 							</c:when>
 							<c:otherwise>
-								<a href="boarddetail.board?seq=${dto.seq}&review=y">${dto.title}</a>							
+								<%-- <jsp:setProperty property="arrowNbsp" name="util" value="${dto.depth}"/>
+								<jsp:getProperty property="arrowNbsp" name="util"/> --%>
+								
+								<c:forEach begin="1" end="${dto.depth}" var="i" step="1">
+									<c:if test="${i==dto.depth}">
+										<img src="img/arrow.png" width="15px" height="15px" />
+									</c:if>
+								</c:forEach>
+								
+								<a href="boarddetail.board?seq=${dto.seq}&review=y&pnum=${pMap.pnum}">${dto.title}</a>							
 							</c:otherwise>
 						</c:choose>
 					</td>
@@ -98,6 +109,26 @@
 			</c:forEach>
 		</c:otherwise>
 	</c:choose>
+	
+	<tr>
+		<td colspan="10">
+<%-- 			<c:forEach begin="1" end="${pcount}" var="i" step="1">
+				<a href="boardlist.board?pnum=${i}">${i}</a>|			
+			</c:forEach> --%>
+			<nav aria-label="Page navigation example">
+				<ul class="pagination justify-content-center">
+				  <li class="page-item"><a class="page-link" href="boardlist.board?pnum=${pMap.prePageNum}">Previous</a></li>
+				  
+				  <c:forEach begin="${pMap.startPage}" end="${pMap.endPage}" var="i" step="1">
+				  	<li class="page-item"><a class="page-link" href="boardlist.board?pnum=${i}">${i}</a></li>
+				  </c:forEach>
+				  
+				  <li class="page-item"><a class="page-link" href="boardlist.board?pnum=${pMap.nextPageNum}">Next</a></li>
+				</ul>
+			</nav>
+		</td>
+	</tr>
+	
 	<tr>
 		<td colspan="10">
 			<button class="btn btn-primary" type="button" onclick="insertBoardForm()">글추가</button>	
@@ -107,6 +138,7 @@
 	</tr>
 </table>
 </form>
+</div>
 </body>
 </html>
 <jsp:include page="footer.jsp"/>

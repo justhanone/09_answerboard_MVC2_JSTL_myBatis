@@ -9,7 +9,7 @@ public class AnsDaoTest {
 	public static void main(String[] args) {
 		
 		AnsDao dao=new AnsDao();
-		List<AnsDto> list=dao.getAllList();		
+		List<AnsDto> list=dao.getAllList(pnum);		
 		
 		
 		System.out.println(list);
