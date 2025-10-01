@@ -9,6 +9,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.websocket.Session;
 
 import com.hk.board.dao.AnsDao;
 import com.hk.board.dto.AnsDto;
@@ -32,9 +34,38 @@ public class AnsController extends HttpServlet{
 		
 		AnsDao dao=new AnsDao();
 		
+//		if(command.equals("/boardlist.board")) {
+//			//페이지 번호 받기
+//			String pnum=request.getParameter("pnum");
+//			
+//			List<AnsDto> list=dao.getAllList(pnum);
+//			request.setAttribute("list", list);
+//			
+//			//페이지 개수 구해서 boardlist.jsp로 보내기 위해 스코프에 담기
+//			int pcount=dao.getPCount();
+//			request.setAttribute("pcount", pcount);
+//			
+//			//페이지에 페이징 처리 기능 추가
+//			//필요한 값: pcount(총 페이지 개수), pnum(요청 페이지 번호), 페이지 범위(페이지 수)
+//			Map<String, Integer> map=Paging.pagingValue(pcount, pnum, 3);
+//			request.setAttribute("pMap", map);
+//			
+//			dispatch("boardlist.jsp", request, response);
+//		}
+		
+		//강사님 방법
 		if(command.equals("/boardlist.board")) {
 			//페이지 번호 받기
 			String pnum=request.getParameter("pnum");
+			HttpSession session=request.getSession();
+			
+			if(pnum==null) {
+				pnum=(String)session.getAttribute("pnum");
+			}
+			
+			else {
+				session.setAttribute("pnum", pnum);
+			}
 			
 			List<AnsDto> list=dao.getAllList(pnum);
 			request.setAttribute("list", list);
